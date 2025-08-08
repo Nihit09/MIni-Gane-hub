@@ -1,0 +1,307 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Game Hub</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      margin: 20px 0;
+      color: #00e676;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+    .card {
+      background: #1e2f3d;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+      border: 2px solid #00e676;
+    }
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00e676;
+    }
+    .game-area {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 600px;
+      display: none;
+      background-color: #1e2f3d;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: #ffffff10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .rps-options {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .rps-options button {
+      background-color: #00e676;
+      color: #000;
+      border: none;
+      padding: 15px 25px;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .rps-options button:hover {
+      background-color: #00c853;
+      transform: scale(1.05);
+    }
+    #rps-result {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-top: 15px;
+      color: #00e676;
+    }
+    .snake-board {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 2px;
+    }
+    .snake-cell {
+      width: 30px;
+      height: 30px;
+      background: #00000030;
+    }
+    .snake {
+      background: limegreen;
+    }
+    .food {
+      background: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Mini Game Hub</h1>
+  <div class="grid">
+    <div class="card" onclick="showGame('tictactoe')">❌ Tic Tac Toe</div>
+    <div class="card" onclick="showGame('rps')">✊ Rock Paper Scissors</div>
+    <div class="card" onclick="showGame('memory')">🧠 Memory Match</div>
+    <div class="card" onclick="showGame('snake')">🐍 Snake Game</div>
+  </div>
+
+
+  <div id="tictactoe" class="game-area">
+    <h2>Tic Tac Toe</h2>
+    <div class="board" id="ttt-board"></div>
+    <p id="ttt-status"></p>
+  </div>
+
+
+  <div id="rps" class="game-area">
+    <h2>Rock Paper Scissors</h2>
+    <div class="rps-options">
+      <button onclick="playRPS('rock')">✊ Rock</button>
+      <button onclick="playRPS('paper')">✋ Paper</button>
+      <button onclick="playRPS('scissors')">✌️ Scissors</button>
+    </div>
+    <p id="rps-result"></p>
+  </div>
+
+ 
+  <div id="snake" class="game-area">
+    <h2>Snake Game</h2>
+    <div class="snake-board" id="snake-board"></div>
+    <p>Use arrow keys to play!</p>
+  </div>
+
+  <div id="memory" class="game-area">
+    <h2>Memory Match</h2>
+    <p>Find the matching pairs!</p>
+    <div class="board" id="memory-board"></div>
+  </div>
+
+  <script>
+    function showGame(id) {
+      document.querySelectorAll('.game-area').forEach(div => div.style.display = 'none');
+      document.getElementById(id).style.display = 'block';
+      if (id === 'tictactoe') initTicTacToe();
+      if (id === 'snake') initSnake();
+      if (id === 'memory') initMemory();
+    }
+
+
+    let tttCurrent = 'X';
+    function initTicTacToe() {
+      const board = document.getElementById('ttt-board');
+      const status = document.getElementById('ttt-status');
+      board.innerHTML = '';
+      let cells = Array(9).fill(null);
+
+      cells.forEach((_, i) => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.addEventListener('click', () => {
+          if (!cells[i]) {
+            cells[i] = tttCurrent;
+            cell.textContent = tttCurrent;
+            if (checkWin(cells)) {
+              status.textContent = `${tttCurrent} wins!`;
+            } else if (!cells.includes(null)) {
+              status.textContent = "It's a draw!";
+            } else {
+              tttCurrent = tttCurrent === 'X' ? 'O' : 'X';
+              status.textContent = `${tttCurrent}'s turn`;
+            }
+          }
+        });
+        board.appendChild(cell);
+      });
+      status.textContent = `${tttCurrent}'s turn`;
+    }
+
+    function checkWin(c) {
+      const winCombos = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      return winCombos.some(combo => combo.every(i => c[i] && c[i] === c[combo[0]]));
+    }
+
+    // Rock Paper Scissors
+    function playRPS(user) {
+      const choices = ['rock', 'paper', 'scissors'];
+      const cpu = choices[Math.floor(Math.random() * 3)];
+      let result = '';
+      if (user === cpu) result = 'Draw!';
+      else if (
+        (user === 'rock' && cpu === 'scissors') ||
+        (user === 'scissors' && cpu === 'paper') ||
+        (user === 'paper' && cpu === 'rock')
+      ) result = 'You win!';
+      else result = 'You lose!';
+      document.getElementById('rps-result').textContent = `You: ${user} | CPU: ${cpu} → ${result}`;
+    }
+
+    // Snake Game
+    let snake = [22];
+    let dir = 1;
+    let food = 0;
+    function initSnake() {
+      const board = document.getElementById('snake-board');
+      board.innerHTML = '';
+      for (let i = 0; i < 100; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('snake-cell');
+        board.appendChild(cell);
+      }
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp') dir = -10;
+        if (e.key === 'ArrowDown') dir = 10;
+        if (e.key === 'ArrowLeft') dir = -1;
+        if (e.key === 'ArrowRight') dir = 1;
+      });
+      placeFood();
+      if (window.snakeInterval) clearInterval(window.snakeInterval);
+      window.snakeInterval = setInterval(moveSnake, 300);
+    }
+
+    function moveSnake() {
+      const next = snake[0] + dir;
+      if (snake.includes(next) || next < 0 || next >= 100 ||
+          (dir === 1 && next % 10 === 0) ||
+          (dir === -1 && next % 10 === 9)) {
+        alert('Game Over!');
+        snake = [22];
+        initSnake();
+        return;
+      }
+      snake.unshift(next);
+      if (next === food) placeFood();
+      else snake.pop();
+      renderSnake();
+    }
+
+    function renderSnake() {
+      const cells = document.querySelectorAll('.snake-cell');
+      cells.forEach(cell => cell.classList.remove('snake', 'food'));
+      snake.forEach(i => cells[i].classList.add('snake'));
+      cells[food].classList.add('food');
+    }
+
+    function placeFood() {
+      food = Math.floor(Math.random() * 100);
+      if (snake.includes(food)) placeFood();
+    }
+
+    // Memory Match Game
+    function initMemory() {
+      const board = document.getElementById('memory-board');
+      board.innerHTML = '';
+      const emojis = ['🍎','🍌','🍇','🍒','🥝','🍍'];
+      const items = [...emojis, ...emojis].sort(() => 0.5 - Math.random());
+      let first = null;
+      items.forEach((emoji, i) => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.textContent = '';
+        cell.addEventListener('click', () => {
+          if (cell.textContent || cell === first) return;
+          cell.textContent = emoji;
+          if (!first) {
+            first = cell;
+          } else {
+            if (first.textContent === emoji) {
+              first = null;
+            } else {
+              setTimeout(() => {
+                cell.textContent = '';
+                first.textContent = '';
+                first = null;
+              }, 800);
+            }
+          }
+        });
+        board.appendChild(cell);
+      });
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+ 
